@@ -14,9 +14,53 @@ char* msg1 = "hello world #1";
 char* msg2 = "hello world #2";
 char* msg3 = "hello world #3";
 
-int main(void)
-{
-    // Your code here
+int main(int argc, char* argv[])
+
+{   char inbuf[MSGSIZE];
+    int p[2];
+    int nbytes;
+
+    if (pipe(p) <0 ) {
+        fprintf(stderr, "pipe failed\n");
+        exit(2);
+    }
+
+    int rc = fork();
+
+    if (rc < 0) {
+        fprintf(stderr, "fork failed\n");
+        exit(1);
+    } else if (rc == 0) {
+        printf("child write to pipe\n");
+        write(p[1], msg1, MSGSIZE);
+        write(p[1], msg2, MSGSIZE);
+        write(p[1], msg3, MSGSIZE);
+    } else {
+        close(p[1]);
+        // int wc = waitpid(rc, NULL, 0);
+        printf("parent here reading from pipe\n");
+
+        while( (nbytes = read(p[0], inbuf, MSGSIZE)) > 0){
+            printf("%s\n", inbuf);
+        }
+        // for(int i = 0; i <3 ; i++) {
+        //     read(p[0], inbuf, MSGSIZE);
+        //     printf("%s\n", inbuf);
+        // }
+        printf("finished reading\n");
+    }
     
     return 0;
 }
+
+
+// int main()
+// {
+//     char inbuf[MSGSIZE];    // a buffer that will hold the incoming data that is being written
+//     int p[2];               // a two-element array to hold the read and write file descriptors that are used by the pipe   
+
+//     // establish our pipe, passing it the p array so that it gets populated by the read and write file descriptors
+//     if (pipe(p) < 0) {
+//         fprintf(stderr, "pipe failed\n");
+//         exit(1);
+//     }
